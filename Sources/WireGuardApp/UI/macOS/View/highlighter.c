@@ -256,6 +256,12 @@ static bool is_valid_prepostupdown(string_span_t s)
 }
 #endif
 
+static bool is_valid_proxyendpoint(string_span_t s)
+{
+    // TODO: parse proxy endpoint
+    return s.len;
+}
+
 static bool is_valid_scope(string_span_t s)
 {
 	if (s.len > 64 || !s.len)
@@ -356,6 +362,7 @@ enum field {
 	PresharedKey,
 	AllowedIPs,
 	Endpoint,
+	ProxyEndpoint,
 	PersistentKeepalive,
 
 	Invalid
@@ -382,6 +389,7 @@ static enum field get_field(string_span_t s)
 	check_enum(PresharedKey);
 	check_enum(AllowedIPs);
 	check_enum(Endpoint);
+	check_enum(ProxyEndpoint);
 	check_enum(PersistentKeepalive);
 #ifndef MOBILE_WGQUICK_SUBSET
 	check_enum(FwMark);
@@ -560,6 +568,10 @@ static void highlight_value(struct highlight_span_array *ret, const string_span_
 		append_highlight_span(ret, parent.s, (string_span_t){ s.s + colon, 1 }, HighlightDelimiter);
 		append_highlight_span(ret, parent.s, (string_span_t){ s.s + colon + 1, s.len - colon - 1 }, HighlightPort);
 		break;
+	}
+	case ProxyEndpoint: {
+	    append_highlight_span(ret, parent.s, s, is_valid_proxyendpoint(s) ? HighlightProxyEndpoint : HighlightError);
+	    break;
 	}
 	case Address:
 	case DNS:

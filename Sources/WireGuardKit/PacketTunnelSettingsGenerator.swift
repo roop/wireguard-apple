@@ -64,6 +64,10 @@ class PacketTunnelSettingsGenerator {
             }
             resolutionResults.append(result)
 
+            if let proxyEndpoint = peer.proxyEndpoint {
+                wgSettings.append("proxy_endpoint=\(proxyEndpoint.absoluteString)\n")
+            }
+
             let persistentKeepAlive = peer.persistentKeepAlive ?? 0
             wgSettings.append("persistent_keepalive_interval=\(persistentKeepAlive)\n")
             if !peer.allowedIPs.isEmpty {
