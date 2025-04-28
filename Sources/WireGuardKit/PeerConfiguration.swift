@@ -8,6 +8,7 @@ public struct PeerConfiguration {
     public var preSharedKey: PreSharedKey?
     public var allowedIPs = [IPAddressRange]()
     public var endpoint: Endpoint?
+    public var proxyEndpoint: URL?
     public var persistentKeepAlive: UInt16?
     public var rxBytes: UInt64?
     public var txBytes: UInt64?
@@ -24,6 +25,7 @@ extension PeerConfiguration: Equatable {
             lhs.preSharedKey == rhs.preSharedKey &&
             Set(lhs.allowedIPs) == Set(rhs.allowedIPs) &&
             lhs.endpoint == rhs.endpoint &&
+            lhs.proxyEndpoint == rhs.proxyEndpoint &&
             lhs.persistentKeepAlive == rhs.persistentKeepAlive
     }
 }
@@ -34,6 +36,7 @@ extension PeerConfiguration: Hashable {
         hasher.combine(preSharedKey)
         hasher.combine(Set(allowedIPs))
         hasher.combine(endpoint)
+        hasher.combine(proxyEndpoint)
         hasher.combine(persistentKeepAlive)
 
     }

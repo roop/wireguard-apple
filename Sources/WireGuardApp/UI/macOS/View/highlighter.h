@@ -16,6 +16,7 @@ enum highlight_type {
 	HighlightCidr,
 	HighlightHost,
 	HighlightPort,
+	HighlightProxyEndpoint,
 	HighlightMTU,
 	HighlightKeepalive,
 	HighlightComment,

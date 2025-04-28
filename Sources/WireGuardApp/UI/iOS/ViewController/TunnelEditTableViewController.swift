@@ -356,7 +356,7 @@ extension TunnelEditTableViewController {
         case .publicKey:
             cell.placeholderText = tr("tunnelEditPlaceholderTextRequired")
             cell.keyboardType = .default
-        case .preSharedKey, .endpoint:
+        case .preSharedKey, .endpoint, .proxyEndpoint:
             cell.placeholderText = tr("tunnelEditPlaceholderTextOptional")
             cell.keyboardType = .default
         case .allowedIPs:
