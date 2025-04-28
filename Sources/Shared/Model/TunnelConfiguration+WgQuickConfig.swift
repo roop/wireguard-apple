@@ -27,6 +27,7 @@ extension TunnelConfiguration {
         case peerHasInvalidPreSharedKey(String)
         case peerHasInvalidAllowedIP(String)
         case peerHasInvalidEndpoint(String)
+        case peerHasInvalidProxyEndpoint(String)
         case peerHasInvalidPersistentKeepAlive(String)
         case peerHasInvalidTransferBytes(String)
         case peerHasInvalidLastHandshakeTime(String)
@@ -72,7 +73,7 @@ extension TunnelConfiguration {
                         attributes[key] = value
                     }
                     let interfaceSectionKeys: Set<String> = ["privatekey", "listenport", "address", "dns", "mtu"]
-                    let peerSectionKeys: Set<String> = ["publickey", "presharedkey", "allowedips", "endpoint", "persistentkeepalive"]
+                    let peerSectionKeys: Set<String> = ["publickey", "presharedkey", "allowedips", "endpoint", "proxyendpoint", "persistentkeepalive"]
                     if parserState == .inInterfaceSection {
                         guard interfaceSectionKeys.contains(key) else {
                             throw ParseError.interfaceHasUnrecognizedKey(keyWithCase)
@@ -155,6 +156,9 @@ extension TunnelConfiguration {
             }
             if let endpoint = peer.endpoint {
                 output.append("Endpoint = \(endpoint.stringRepresentation)\n")
+            }
+            if let proxyEndpoint = peer.proxyEndpoint {
+                output.append("ProxyEndpoint = \(proxyEndpoint.absoluteString)\n")
             }
             if let persistentKeepAlive = peer.persistentKeepAlive {
                 output.append("PersistentKeepalive = \(persistentKeepAlive)\n")
@@ -239,6 +243,12 @@ extension TunnelConfiguration {
                 throw ParseError.peerHasInvalidEndpoint(endpointString)
             }
             peer.endpoint = endpoint
+        }
+        if let proxyEndpointString = attributes["proxyendpoint"] {
+            guard let proxyEndpoint = URL(string: proxyEndpointString) else {
+                throw ParseError.peerHasInvalidProxyEndpoint(proxyEndpointString)
+            }
+            peer.proxyEndpoint = URL(string: proxyEndpointString)
         }
         if let persistentKeepAliveString = attributes["persistentkeepalive"] {
             guard let persistentKeepAlive = UInt16(persistentKeepAliveString) else {
