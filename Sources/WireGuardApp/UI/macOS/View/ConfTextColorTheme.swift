@@ -16,6 +16,7 @@ struct ConfTextAquaColorTheme: ConfTextColorTheme {
         HighlightPublicKey.rawValue: NSColor(hex: "#643820"), // Preprocessor directives in Xcode
         HighlightPrivateKey.rawValue: NSColor(hex: "#643820"), // Preprocessor directives in Xcode
         HighlightPresharedKey.rawValue: NSColor(hex: "#643820"), // Preprocessor directives in Xcode
+        HighlightProxyEndpoint.rawValue: NSColor(hex: "#9B2393"), // Preprocessor directives in Xcode
         HighlightIP.rawValue: NSColor(hex: "#0E0EFF"), // URLs in Xcode
         HighlightHost.rawValue: NSColor(hex: "#0E0EFF"), // URLs in Xcode
         HighlightCidr.rawValue: NSColor(hex: "#815F03"), // Attributes in Xcode
@@ -35,6 +36,7 @@ struct ConfTextDarkAquaColorTheme: ConfTextColorTheme {
         HighlightPublicKey.rawValue: NSColor(hex: "#FD8F3F"), // Preprocessor directives in Xcode
         HighlightPrivateKey.rawValue: NSColor(hex: "#FD8F3F"), // Preprocessor directives in Xcode
         HighlightPresharedKey.rawValue: NSColor(hex: "#FD8F3F"), // Preprocessor directives in Xcode
+        HighlightProxyEndpoint.rawValue: NSColor(hex: "#9B2393"), // Preprocessor directives in Xcode
         HighlightIP.rawValue: NSColor(hex: "#53A5FB"), // URLs in Xcode
         HighlightHost.rawValue: NSColor(hex: "#53A5FB"), // URLs in Xcode
         HighlightCidr.rawValue: NSColor(hex: "#75B492"), // Attributes in Xcode

@@ -4,10 +4,10 @@ This project contains an application for iOS and for macOS, as well as many comp
 
 ## Building
 
-- Clone this repo:
+- Clone this repo and its submodule:
 
 ```
-$ git clone https://git.zx2c4.com/wireguard-apple
+$ git clone --recursive https://git.zx2c4.com/wireguard-apple
 $ cd wireguard-apple
 ```
 

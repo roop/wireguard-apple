@@ -39,6 +39,8 @@ extension TunnelConfiguration.ParseError: WireGuardAppError {
             return (tr(format: "macAlertAllowedIPInvalid (%@)", value), tr("alertInvalidPeerMessageAllowedIPsInvalid"))
         case .peerHasInvalidEndpoint(let value):
             return (tr(format: "macAlertEndpointInvalid (%@)", value), tr("alertInvalidPeerMessageEndpointInvalid"))
+        case .peerHasInvalidProxyEndpoint(let value):
+            return (tr(format: "macAlertProxyEndpointInvalid (%@)", value), tr("alertInvalidPeerMessageProxyEndpointInvalid"))
         case .peerHasInvalidPersistentKeepAlive(let value):
             return (tr(format: "macAlertPersistentKeepliveInvalid (%@)", value), tr("alertInvalidPeerMessagePersistentKeepaliveInvalid"))
         case .peerHasUnrecognizedKey(let value):

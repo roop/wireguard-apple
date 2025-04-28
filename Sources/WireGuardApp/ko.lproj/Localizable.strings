@@ -217,7 +217,7 @@
 "alertNoTunnelsToExportMessage" = "There are no tunnels to export";
 "macMenuImportTunnels" = "Import Tunnel(s) from File…";
 "macMenuViewLog" = "View Log";
-"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’ and ‘PersistentKeepalive’";
+"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’, 'ProxyEndpoint' and ‘PersistentKeepalive’";
 "tunnelOnDemandNoSSIDs" = "No SSIDs";
 "deleteTunnelConfirmationAlertButtonTitle" = "Delete";
 "tunnelEditPlaceholderTextOff" = "Off";

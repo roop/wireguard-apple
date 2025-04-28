@@ -41,6 +41,7 @@ class TunnelViewModel {
         case publicKey
         case preSharedKey
         case endpoint
+        case proxyEndpoint
         case persistentKeepAlive
         case allowedIPs
         case rxBytes
@@ -54,6 +55,7 @@ class TunnelViewModel {
             case .publicKey: return tr("tunnelPeerPublicKey")
             case .preSharedKey: return tr("tunnelPeerPreSharedKey")
             case .endpoint: return tr("tunnelPeerEndpoint")
+            case .proxyEndpoint: return tr("tunnelPeerProxyEndpoint")
             case .persistentKeepAlive: return tr("tunnelPeerPersistentKeepalive")
             case .allowedIPs: return tr("tunnelPeerAllowedIPs")
             case .rxBytes: return tr("tunnelPeerRxBytes")
@@ -314,6 +316,9 @@ class TunnelViewModel {
             if let endpoint = config.endpoint {
                 scratchpad[.endpoint] = endpoint.stringRepresentation
             }
+            if let proxyEndpoint = config.proxyEndpoint {
+                scratchpad[.proxyEndpoint] = proxyEndpoint.absoluteString
+            }
             if let persistentKeepAlive = config.persistentKeepAlive {
                 scratchpad[.persistentKeepAlive] = String(persistentKeepAlive)
             }
@@ -370,6 +375,14 @@ class TunnelViewModel {
                 } else {
                     fieldsWithError.insert(.endpoint)
                     errorMessages.append(tr("alertInvalidPeerMessageEndpointInvalid"))
+                }
+            }
+            if let proxyEndpointString = scratchpad[.proxyEndpoint] {
+                if let proxyEndpoint = URL(string: proxyEndpointString) {
+                    config.proxyEndpoint = proxyEndpoint
+                } else {
+                    fieldsWithError.insert(.proxyEndpoint)
+                    errorMessages.append(tr("alertInvalidPeerMessageProxyEndpointInvalid"))
                 }
             }
             if let persistentKeepAliveString = scratchpad[.persistentKeepAlive] {

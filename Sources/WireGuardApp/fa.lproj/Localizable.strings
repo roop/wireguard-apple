@@ -390,7 +390,7 @@
 "macToolTipToggleStatus" = "Toggle status (⌘T)";
 "macTunnelsMenuTitle" = "Tunnels";
 "scanQRCodeTipText" = "Tip: Generate with `qrencode -t ansiutf8 < tunnel.conf`";
-"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’ and ‘PersistentKeepalive’";
+"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’, 'ProxyEndpoint' and ‘PersistentKeepalive’";
 "alertInvalidPeerMessageAllowedIPsInvalid" = "Peer’s allowed IPs must be a list of comma-separated IP addresses, optionally in CIDR notation";
 "alertTunnelAlreadyExistsWithThatNameMessage" = "A tunnel with that name already exists";
 "iosExportPrivateData" = "Authenticate to export tunnel private keys.";

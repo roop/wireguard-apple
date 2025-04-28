@@ -242,7 +242,7 @@
 "macMenuImportTunnels" = "Import Tunnel(s) from File…";
 "alertScanQRCodeInvalidQRCodeTitle" = "Invalid QR Code";
 "macMenuViewLog" = "View Log";
-"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’ and ‘PersistentKeepalive’";
+"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’, 'ProxyEndpoint' and ‘PersistentKeepalive’";
 "tunnelOnDemandNoSSIDs" = "No SSIDs";
 "deleteTunnelConfirmationAlertButtonTitle" = "Delete";
 "tunnelEditPlaceholderTextOff" = "Off";

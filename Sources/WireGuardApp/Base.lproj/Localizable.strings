@@ -89,6 +89,7 @@
 "tunnelPeerPublicKey" = "Public key";
 "tunnelPeerPreSharedKey" = "Preshared key";
 "tunnelPeerEndpoint" = "Endpoint";
+"tunnelPeerProxyEndpoint" = "Proxy Endpoint";
 "tunnelPeerPersistentKeepalive" = "Persistent keepalive";
 "tunnelPeerAllowedIPs" = "Allowed IPs";
 "tunnelPeerRxBytes" = "Data received";
@@ -187,6 +188,7 @@
 "alertInvalidPeerMessagePreSharedKeyInvalid" = "Peer’s preshared key must be a 32-byte key in base64 encoding";
 "alertInvalidPeerMessageAllowedIPsInvalid" = "Peer’s allowed IPs must be a list of comma-separated IP addresses, optionally in CIDR notation";
 "alertInvalidPeerMessageEndpointInvalid" = "Peer’s endpoint must be of the form ‘host:port’ or ‘[host]:port’";
+"alertInvalidPeerMessageProxyEndpointInvalid" = "Peer’s proxy endpoint must be a valid URL";
 "alertInvalidPeerMessagePersistentKeepaliveInvalid" = "Peer’s persistent keepalive must be between 0 to 65535, or unspecified";
 "alertInvalidPeerMessagePublicKeyDuplicated" = "Two or more peers cannot have the same public key";
 
@@ -395,10 +397,11 @@
 "macAlertPreSharedKeyInvalid" = "Preshared key is invalid";
 "macAlertAllowedIPInvalid (%@)" = "Allowed IP ‘%@’ is invalid";
 "macAlertEndpointInvalid (%@)" = "Endpoint ‘%@’ is invalid";
+"macAlertProxyEndpointInvalid (%@)" = "Proxy Endpoint ‘%@’ is invalid";
 "macAlertPersistentKeepliveInvalid (%@)" = "Persistent keepalive value ‘%@’ is invalid";
 
 "macAlertUnrecognizedPeerKey (%@)" = "Peer contains unrecognized key ‘%@’";
-"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’ and ‘PersistentKeepalive’";
+"macAlertInfoUnrecognizedPeerKey" = "Valid keys are: ‘PublicKey’, ‘PresharedKey’, ‘AllowedIPs’, ‘Endpoint’, 'ProxyEndpoint' and ‘PersistentKeepalive’";
 
 "macAlertMultipleEntriesForKey (%@)" = "There should be only one entry per section for key ‘%@’";
 
