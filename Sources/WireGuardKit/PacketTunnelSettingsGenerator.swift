@@ -89,10 +89,24 @@ class PacketTunnelSettingsGenerator {
 
         if !tunnelConfiguration.interface.dnsSearch.isEmpty || !tunnelConfiguration.interface.dns.isEmpty {
             let dnsServerStrings = tunnelConfiguration.interface.dns.map { $0.stringRepresentation }
+            let dnsSearchStrings = tunnelConfiguration.interface.dnsSearch
             let dnsSettings = NEDNSSettings(servers: dnsServerStrings)
-            dnsSettings.searchDomains = tunnelConfiguration.interface.dnsSearch
-            if !tunnelConfiguration.interface.dns.isEmpty {
-                dnsSettings.matchDomains = [""] + (dnsSettings.searchDomains ?? []) // All DNS queries must first go through the tunnel's DNS
+            if dnsServerStrings.count > 0 {
+                if dnsSearchStrings.isEmpty {
+                    // If no domain is specified in DNS settings,
+                    // make all DNS queries go through the tunnel's DNS
+                    dnsSettings.matchDomains = [""]
+                } else {
+                    // If some domains are specified in DNS settings,
+                    // use them as both match domains and search domains.
+                    // Setting matchDomains automatically sets searchDomains.
+                    dnsSettings.matchDomains = dnsSearchStrings
+                    // In scutil --dns output, the scoped-query-DNS-resolver's
+                    // search domain seems to be set only if we set the domainName
+                    if dnsSearchStrings.count == 1 {
+                        dnsSettings.domainName = dnsSearchStrings.first
+                    }
+                }
             }
             networkSettings.dnsSettings = dnsSettings
         }
