@@ -47,6 +47,10 @@ public class WireGuardAdapter {
     /// Packet tunnel provider.
     private weak var packetTunnelProvider: NEPacketTunnelProvider?
 
+    /// Whether we should assume that the default route is part of the Allowed IPs
+    /// (for deriving DNS settings)
+    private let assumeDefaultRouteIncluded: Bool
+
     /// Log handler closure.
     private let logHandler: LogHandler
 
@@ -129,8 +133,9 @@ public class WireGuardAdapter {
     /// - Parameter packetTunnelProvider: an instance of `NEPacketTunnelProvider`. Internally stored
     ///   as a weak reference.
     /// - Parameter logHandler: a log handler closure.
-    public init(with packetTunnelProvider: NEPacketTunnelProvider, logHandler: @escaping LogHandler) {
+    public init(with packetTunnelProvider: NEPacketTunnelProvider, assumeDefaultRouteIncluded: Bool = true, logHandler: @escaping LogHandler) {
         self.packetTunnelProvider = packetTunnelProvider
+        self.assumeDefaultRouteIncluded = assumeDefaultRouteIncluded
         self.logHandler = logHandler
 
         setupLogHandler()
@@ -390,7 +395,8 @@ public class WireGuardAdapter {
     private func makeSettingsGenerator(with tunnelConfiguration: TunnelConfiguration) throws -> PacketTunnelSettingsGenerator {
         return PacketTunnelSettingsGenerator(
             tunnelConfiguration: tunnelConfiguration,
-            resolvedEndpoints: try self.resolvePeers(for: tunnelConfiguration)
+            resolvedEndpoints: try self.resolvePeers(for: tunnelConfiguration),
+            assumeDefaultRouteIncluded: self.assumeDefaultRouteIncluded
         )
     }
 

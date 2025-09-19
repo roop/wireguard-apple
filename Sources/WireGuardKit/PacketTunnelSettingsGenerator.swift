@@ -15,10 +15,12 @@ typealias EndpointResolutionResult = Result<(Endpoint, Endpoint), DNSResolutionE
 class PacketTunnelSettingsGenerator {
     let tunnelConfiguration: TunnelConfiguration
     let resolvedEndpoints: [Endpoint?]
+    let assumeDefaultRouteIncluded: Bool
 
-    init(tunnelConfiguration: TunnelConfiguration, resolvedEndpoints: [Endpoint?]) {
+    init(tunnelConfiguration: TunnelConfiguration, resolvedEndpoints: [Endpoint?], assumeDefaultRouteIncluded: Bool) {
         self.tunnelConfiguration = tunnelConfiguration
         self.resolvedEndpoints = resolvedEndpoints
+        self.assumeDefaultRouteIncluded = assumeDefaultRouteIncluded
     }
 
     func endpointUapiConfiguration() -> (String, [EndpointResolutionResult?]) {
@@ -89,11 +91,54 @@ class PacketTunnelSettingsGenerator {
 
         if !tunnelConfiguration.interface.dnsSearch.isEmpty || !tunnelConfiguration.interface.dns.isEmpty {
             let dnsServerStrings = tunnelConfiguration.interface.dns.map { $0.stringRepresentation }
+            let dnsSearchStrings = tunnelConfiguration.interface.dnsSearch
             let dnsSettings = NEDNSSettings(servers: dnsServerStrings)
-            dnsSettings.searchDomains = tunnelConfiguration.interface.dnsSearch
-            if !tunnelConfiguration.interface.dns.isEmpty {
-                dnsSettings.matchDomains = [""] // All DNS queries must first go through the tunnel's DNS
+
+            if assumeDefaultRouteIncluded {
+                // Assume full tunnel
+                if !dnsServerStrings.isEmpty {
+                    // Use the tunnel's DNS resolver for all DNS queries.
+                    // Set search domains.
+                    dnsSettings.matchDomainsNoSearch = true
+                    dnsSettings.matchDomains = [""]
+                    dnsSettings.searchDomains = dnsSearchStrings
+                } else {
+                    // This is a problem because the OS will use the
+                    // tunnel's DNS resolver as its default resolver,
+                    // ignoring our matchDomains.
+                    dnsSettings.searchDomains = dnsSearchStrings
+                }
+            } else {
+                // Assume split tunnel
+                if !dnsServerStrings.isEmpty {
+                    // Use the tunnel's DNS resolver only for the specified domains.
+                    // Set search domains implicitly.
+                    dnsSettings.matchDomainsNoSearch = false
+                    dnsSettings.matchDomains = dnsSearchStrings
+                } else {
+                    // We do not want use the tunnel's DNS resolver for anything.
+                    // We only set search domains, but that doesn't seem to work
+                    // when there are no DNS servers set.
+                    dnsSettings.searchDomains = dnsSearchStrings
+                }
             }
+
+            // In scutil --dns output, the scoped-query-DNS-resolver's
+            // search domain seems to be set only if we set the domainName.
+            // Not sure whether that matters, but it seems like a good idea to
+            // set this when there's only one search string.
+            if !tunnelConfiguration.interface.dns.isEmpty {
+                if dnsSearchStrings.count == 1 {
+                    dnsSettings.domainName = dnsSearchStrings.first
+                }
+            }
+
+            if dnsServerStrings.isEmpty {
+                // If there are no DNS servers specified, make sure that
+                // we do not use the tunnel's DNS resolver for anything.
+                precondition(dnsSettings.matchDomains?.isEmpty ?? true)
+            }
+
             networkSettings.dnsSettings = dnsSettings
         }
 
