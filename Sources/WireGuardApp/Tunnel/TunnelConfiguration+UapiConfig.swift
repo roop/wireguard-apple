@@ -140,6 +140,12 @@ extension TunnelConfiguration {
             }
             peer.endpoint = endpoint
         }
+        if let proxyEndpointString = attributes["proxy_endpoint"] {
+            guard let proxyEndpoint = URL(string: proxyEndpointString) else {
+                throw ParseError.peerHasInvalidProxyEndpoint(proxyEndpointString)
+            }
+            peer.proxyEndpoint = proxyEndpoint
+        }
         if let persistentKeepAliveString = attributes["persistent_keepalive_interval"] {
             guard let persistentKeepAlive = UInt16(persistentKeepAliveString) else {
                 throw ParseError.peerHasInvalidPersistentKeepAlive(persistentKeepAliveString)
