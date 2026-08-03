@@ -24,12 +24,18 @@ public enum WireGuardAdapterError: Error {
 
     /// Failure to start WireGuard backend.
     case startWireGuardBackend(Int32)
+
+    /// Not network connectivity
+    case noNetworkConnectivity
 }
 
 /// Enum representing internal state of the `WireGuardAdapter`
 private enum State {
     /// The tunnel is stopped
     case stopped
+
+    /// The tunnel is starting
+    case starting(tunnelConfiguration: TunnelConfiguration, completionHandler: (WireGuardAdapterError?) -> Void)
 
     /// The tunnel is up and running
     case started(_ handle: Int32, _ settingsGenerator: PacketTunnelSettingsGenerator)
@@ -123,6 +129,8 @@ public class WireGuardAdapter {
         }
     }
 
+    var isSatifiablePathFoundAfterStartingTunnel = false
+
     // MARK: - Initialization
 
     /// Designated initializer.
@@ -185,26 +193,14 @@ public class WireGuardAdapter {
             networkMonitor.pathUpdateHandler = { [weak self] path in
                 self?.didReceivePathUpdate(path: path)
             }
+            self.state = .starting(tunnelConfiguration: tunnelConfiguration, completionHandler: completionHandler)
             networkMonitor.start(queue: self.workQueue)
-
-            do {
-                let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration)
-                try self.setNetworkSettings(settingsGenerator.generateNetworkSettings())
-
-                let (wgConfig, resolutionResults) = settingsGenerator.uapiConfiguration()
-                self.logEndpointResolutionResults(resolutionResults)
-
-                self.state = .started(
-                    try self.startWireGuardBackend(wgConfig: wgConfig),
-                    settingsGenerator
-                )
-                self.networkMonitor = networkMonitor
-                completionHandler(nil)
-            } catch let error as WireGuardAdapterError {
-                networkMonitor.cancel()
-                completionHandler(error)
-            } catch {
-                fatalError()
+            self.networkMonitor = networkMonitor
+            self.workQueue.asyncAfter(deadline: .now() + .seconds(3)) {
+                if case .starting(let tunnelConfiguration, let completionHandler) = self.state {
+                    self.state = .stopped
+                    completionHandler(WireGuardAdapterError.noNetworkConnectivity)
+                }
             }
         }
     }
@@ -217,7 +213,7 @@ public class WireGuardAdapter {
             case .started(let handle, _):
                 wgTurnOff(handle)
 
-            case .temporaryShutdown:
+            case .temporaryShutdown, .starting:
                 break
 
             case .stopped:
@@ -272,7 +268,7 @@ public class WireGuardAdapter {
                 case .temporaryShutdown:
                     self.state = .temporaryShutdown(settingsGenerator)
 
-                case .stopped:
+                    case .stopped, .starting:
                     fatalError()
                 }
 
@@ -416,6 +412,30 @@ public class WireGuardAdapter {
     private func didReceivePathUpdate(path: Network.NWPath) {
         self.logHandler(.verbose, "Network change detected with \(path.status) route and interface order \(path.availableInterfaces)")
 
+        if case .starting(let tunnelConfiguration, let completionHandler) = self.state {
+            if path.status.isSatisfiable {
+                self.isSatifiablePathFoundAfterStartingTunnel = true
+                do {
+                    let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration)
+                    try self.setNetworkSettings(settingsGenerator.generateNetworkSettings())
+
+                    let (wgConfig, resolutionResults) = settingsGenerator.uapiConfiguration()
+                    self.logEndpointResolutionResults(resolutionResults)
+
+                    self.state = .started(
+                        try self.startWireGuardBackend(wgConfig: wgConfig),
+                        settingsGenerator
+                    )
+                    completionHandler(nil)
+                } catch let error as WireGuardAdapterError {
+                    networkMonitor?.cancel()
+                    completionHandler(error)
+                } catch {
+                    fatalError()
+                }
+            }
+            return
+        }
         #if os(macOS)
         if case .started(let handle, _) = self.state {
             wgBumpSockets(handle)

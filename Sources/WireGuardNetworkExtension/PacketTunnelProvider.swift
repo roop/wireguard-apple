@@ -62,6 +62,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 errorNotifier.notify(PacketTunnelProviderError.couldNotStartBackend)
                 completionHandler(PacketTunnelProviderError.couldNotStartBackend)
 
+            case .noNetworkConnectivity:
+                wg_log(.error, message: "No network connectivity")
+                errorNotifier.notify(PacketTunnelProviderError.noNetworkConnectivity)
+                completionHandler(PacketTunnelProviderError.noNetworkConnectivity)
+
             case .invalidState:
                 // Must never happen
                 fatalError()
