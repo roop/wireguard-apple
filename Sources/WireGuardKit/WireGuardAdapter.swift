@@ -197,7 +197,7 @@ public class WireGuardAdapter {
             networkMonitor.start(queue: self.workQueue)
             self.networkMonitor = networkMonitor
             self.workQueue.asyncAfter(deadline: .now() + .seconds(3)) {
-                if case .starting(let tunnelConfiguration, let completionHandler) = self.state {
+                if case .starting(_, let completionHandler) = self.state {
                     self.state = .stopped
                     completionHandler(WireGuardAdapterError.noNetworkConnectivity)
                 }
@@ -250,7 +250,15 @@ public class WireGuardAdapter {
             }
 
             do {
-                let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration)
+                let isOnlyIPv6Available: Bool = {
+                    if let path = self.networkMonitor?.currentPath {
+                        if (!path.supportsIPv4 && path.supportsIPv6) {
+                            return true
+                        }
+                    }
+                    return false
+                }()
+                let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration, isOnlyIPv6Available: isOnlyIPv6Available)
                 try self.setNetworkSettings(settingsGenerator.generateNetworkSettings())
 
                 switch self.state {
@@ -337,9 +345,10 @@ public class WireGuardAdapter {
     /// - Parameter tunnelConfiguration: tunnel configuration.
     /// - Throws: an error of type `WireGuardAdapterError`.
     /// - Returns: The list of resolved endpoints.
-    private func resolvePeers(for tunnelConfiguration: TunnelConfiguration) throws -> [Endpoint?] {
+    private func resolvePeers(for tunnelConfiguration: TunnelConfiguration, isOnlyIPv6Available: Bool) throws -> [Endpoint?] {
         let endpoints = tunnelConfiguration.peers.map { $0.endpoint }
-        let resolutionResults = DNSResolver.resolveSync(endpoints: endpoints)
+        self.logHandler(.verbose, "Endpoints: \(endpoints.map { $0?.host }.compactMap { $0 })")
+        let resolutionResults = DNSResolver.resolveSync(endpoints: endpoints, isOnlyIPv6Available: isOnlyIPv6Available)
         let resolutionErrors = resolutionResults.compactMap { result -> DNSResolutionError? in
             if case .failure(let error) = result {
                 return error
@@ -383,10 +392,12 @@ public class WireGuardAdapter {
     /// - Parameter tunnelConfiguration: an instance of type `TunnelConfiguration`.
     /// - Throws: an error of type `WireGuardAdapterError`.
     /// - Returns: an instance of type `PacketTunnelSettingsGenerator`.
-    private func makeSettingsGenerator(with tunnelConfiguration: TunnelConfiguration) throws -> PacketTunnelSettingsGenerator {
+    private func makeSettingsGenerator(with tunnelConfiguration: TunnelConfiguration, isOnlyIPv6Available: Bool) throws -> PacketTunnelSettingsGenerator {
+        let resolvedEndpoints = try self.resolvePeers(for: tunnelConfiguration, isOnlyIPv6Available: isOnlyIPv6Available)
+        self.logHandler(.verbose, "Resolved endpoints: \(resolvedEndpoints.map { $0?.host }.compactMap { $0 })")
         return PacketTunnelSettingsGenerator(
             tunnelConfiguration: tunnelConfiguration,
-            resolvedEndpoints: try self.resolvePeers(for: tunnelConfiguration)
+            resolvedEndpoints: resolvedEndpoints
         )
     }
 
@@ -411,12 +422,14 @@ public class WireGuardAdapter {
     /// - Parameter path: new network path
     private func didReceivePathUpdate(path: Network.NWPath) {
         self.logHandler(.verbose, "Network change detected with \(path.status) route and interface order \(path.availableInterfaces)")
+        self.logHandler(.verbose, "    IPv4: \(path.supportsIPv4 ? "enabled" : "disabled"), IPv6: \(path.supportsIPv6 ? "enabled" : "disabled")")
 
         if case .starting(let tunnelConfiguration, let completionHandler) = self.state {
             if path.status.isSatisfiable {
                 self.isSatifiablePathFoundAfterStartingTunnel = true
                 do {
-                    let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration)
+                    let isOnlyIPv6Available = (!path.supportsIPv4 && path.supportsIPv6)
+                    let settingsGenerator = try self.makeSettingsGenerator(with: tunnelConfiguration, isOnlyIPv6Available: isOnlyIPv6Available)
                     try self.setNetworkSettings(settingsGenerator.generateNetworkSettings())
 
                     let (wgConfig, resolutionResults) = settingsGenerator.uapiConfiguration()

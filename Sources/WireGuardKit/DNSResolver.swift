@@ -11,7 +11,7 @@ extension DNSResolver {
     /// Concurrent queue used for DNS resolutions
     private static let resolverQueue = DispatchQueue(label: "DNSResolverQueue", qos: .default, attributes: .concurrent)
 
-    static func resolveSync(endpoints: [Endpoint?]) -> [Result<Endpoint, DNSResolutionError>?] {
+    static func resolveSync(endpoints: [Endpoint?], isOnlyIPv6Available: Bool) -> [Result<Endpoint, DNSResolutionError>?] {
         let isAllEndpointsAlreadyResolved = endpoints.allSatisfy { maybeEndpoint -> Bool in
             return maybeEndpoint?.hasHostAsIPAddress() ?? true
         }
@@ -28,7 +28,7 @@ extension DNSResolver {
             if endpoint.hasHostAsIPAddress() {
                 return .success(endpoint)
             } else {
-                return Result { try DNSResolver.resolveSync(endpoint: endpoint) }
+                return Result { try DNSResolver.resolveSync(endpoint: endpoint, isOnlyIPv6Available: isOnlyIPv6Available) }
                     .mapError { error -> DNSResolutionError in
                         // swiftlint:disable:next force_cast
                         return error as! DNSResolutionError
@@ -37,14 +37,15 @@ extension DNSResolver {
         }
     }
 
-    private static func resolveSync(endpoint: Endpoint) throws -> Endpoint {
+    private static func resolveSync(endpoint: Endpoint, isOnlyIPv6Available: Bool) throws -> Endpoint {
         guard case .name(let name, _) = endpoint.host else {
             return endpoint
         }
 
         var hints = addrinfo()
-        hints.ai_flags = AI_ALL // We set this to ALL so that we get v4 addresses even on DNS64 networks
-        hints.ai_family = AF_UNSPEC
+        // We set this to ALL so that we get v4 addresses even on DNS64 networks
+        hints.ai_flags = isOnlyIPv6Available ? 0 : AI_ALL
+        hints.ai_family = isOnlyIPv6Available ? AF_INET6 : AF_UNSPEC
         hints.ai_socktype = SOCK_DGRAM
         hints.ai_protocol = IPPROTO_UDP
 
@@ -78,7 +79,7 @@ extension DNSResolver {
             }
         }
 
-        // We prefer an IPv4 address over an IPv6 address
+        // We prefer an IPv4 address over an IPv6 address (unless IPv4 is unavailable)
         if let ipv4Address = ipv4Address {
             return Endpoint(host: .ipv4(ipv4Address), port: endpoint.port)
         } else if let ipv6Address = ipv6Address {
